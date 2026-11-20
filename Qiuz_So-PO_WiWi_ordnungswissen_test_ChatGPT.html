@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ordnungswissen – Fakultät Wirtschaftswissenschaften</title>
+<style>
+:root{--navy:#12304a;--blue:#176b9a;--pale:#eef5f8;--green:#18794e;--red:#a83232;--ink:#1d2935}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#edf4f8,#fff 55%,#eaf2f6);font:16px/1.55 system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink)}
+main{max-width:850px;margin:36px auto;padding:0 18px}.panel{background:#fff;border-radius:18px;padding:clamp(20px,4vw,38px);box-shadow:0 12px 40px #12304a16}
+h1{color:var(--navy);font-size:clamp(1.7rem,4vw,2.35rem);line-height:1.15;margin:0 0 10px}.muted{color:#586775}.pill{display:inline-block;background:var(--pale);color:var(--blue);padding:4px 10px;border-radius:99px;font-size:.86rem;font-weight:650}
+.progress{height:9px;background:#e6edf1;border-radius:9px;overflow:hidden;margin:22px 0}.bar{height:100%;width:0;background:var(--blue);transition:width .2s}
+.qtitle{font-size:1.2rem;font-weight:700;color:var(--navy);margin:18px 0}
+.option{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border:1px solid #d6e0e7;border-radius:12px;margin:10px 0;cursor:pointer;transition:.15s}
+.option:hover{border-color:var(--blue);background:#f7fbfd}.option input{margin-top:5px;accent-color:var(--blue);transform:scale(1.1)}
+button{border:0;border-radius:11px;padding:12px 19px;font-size:1rem;font-weight:700;cursor:pointer;background:var(--blue);color:#fff}
+button:disabled{opacity:.4;cursor:not-allowed}.actions{display:flex;justify-content:space-between;gap:12px;margin-top:24px}.secondary{background:#e8eef2;color:var(--navy)}
+.feedback{margin-top:18px;padding:14px;border-radius:12px;background:#f4f7f9}.result{text-align:center}.score{font-size:2.4rem;font-weight:800;color:var(--navy)}
+.pass{color:var(--green)}.fail{color:var(--red)}.review{text-align:left;margin-top:26px}.review article{border-top:1px solid #e1e8ed;padding:14px 0}.correct{color:var(--green);font-weight:700}.wrong{color:var(--red);font-weight:700}
+#fireworks{position:fixed;inset:0;pointer-events:none;z-index:5}
+small{font-size:.88rem}.foot{margin:18px 3px;color:#62717d;font-size:.85rem}
+a{color:var(--blue)}@media(max-width:560px){main{margin:12px auto}.actions{flex-direction:column-reverse}button{width:100%}}
+</style>
+</head>
+<body>
+<canvas id="fireworks"></canvas>
+<main><section class="panel" id="app">
+  <span class="pill">15 Fragen · ca. 7–10 Minuten</span>
+  <h1>Wie gut kennst du die Studien- und Prüfungsordnungen?</h1>
+  <p class="muted">Teste dein Wissen zu den Studiengängen der Fakultät Wirtschaftswissenschaften der HTW Dresden. Pro Frage ist genau eine Antwort richtig. Du bestehst mit mindestens <b>8 von 15 richtigen Antworten</b>.</p>
+  <p class="muted"><small>Die Fragen beziehen sich auf die auf der Fakultätsseite ausgewiesenen Studiengänge und die dort verlinkten jeweils jüngsten einschlägigen Ordnungsfassungen bzw. Änderungssatzungen. Bei älteren Studiengangsvarianten können für einzelne Immatrikulationsjahrgänge abweichende Fassungen gelten.</small></p>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <div id="quiz"></div>
+  <div class="actions"><button class="secondary" id="back" type="button">Zurück</button><button id="next" type="button">Weiter</button></div>
+</section>
+<p class="foot">Datenbasis: <a href="https://www.htw-dresden.de/studium/im-studium/ordnungen-und-satzungen/wirtschaftswissenschaften" target="_blank" rel="noopener">HTW Dresden – Studien- und Prüfungsordnungen Wirtschaftswissenschaften</a>. Dieser Wissenstest ersetzt keine individuelle Rechtsauskunft und keine Prüfung der für den eigenen Immatrikulationsjahrgang geltenden Ordnung.</p>
+</main>
+<script>
+const questions = [
+{q:"Wie lang ist die Regelstudienzeit im Bachelorstudiengang Betriebswirtschaft im Vollzeitstudium?",o:["6 Semester","7 Semester","8 Semester","9 Semester"],a:1,e:"Die Prüfungsordnung vom 23.01.2024 legt sieben Semester fest (§ 2)."},
+{q:"Welche Voraussetzung nennt die Prüfungsordnung Betriebswirtschaft für den Beginn des integrierten Praktikums?",o:["Mindestens 90 Credits","Mindestens 120 Credits","140 Credits","Erst nach der Bachelorarbeit"],a:2,e:"Das Praktikum darf erst begonnen werden, wenn 140 Credits erbracht wurden (§ 3 Abs. 2)."},
+{q:"Wie lange muss das Praktikum in den Bachelorstudiengängen Betriebswirtschaft, International Business und Wirtschaftsingenieurwesen mindestens dauern?",o:["8 Wochen Vollzeit","10 Wochen Vollzeit","12 Wochen Vollzeit","16 Wochen Vollzeit"],a:2,e:"Die jeweiligen Bachelor-Prüfungsordnungen sehen mindestens 12 Wochen Vollzeitbeschäftigung vor."},
+{q:"Wie lang ist die Regelstudienzeit des Bachelorstudiengangs International Business im Vollzeitstudium?",o:["6 Semester","7 Semester","8 Semester","10 Semester"],a:1,e:"Die Prüfungsordnung International Business vom 23.01.2024 bestimmt sieben Semester (§ 2)."},
+{q:"Welche Bestandteile umfasst die Bachelorprüfung in den Bachelor-Prüfungsordnungen der Fakultät?",o:["Nur Klausuren","Modulprüfungen sowie Bachelorarbeit und deren Verteidigung","Nur Bachelorarbeit ohne Verteidigung","Ein Praxissemester und ein Kolloquium"],a:1,e:"Die Bachelorprüfung besteht aus den vorgesehenen Modulprüfungen einschließlich Bachelorarbeit und Verteidigung."},
+{q:"Welche Regelstudienzeit gilt laut Prüfungsordnung für den aktuellen Masterstudiengang International Management (Fassung vom 24.06.2025) im Vollzeitstudium?",o:["2 Semester","3 Semester","4 Semester","5 Semester"],a:1,e:"Die aktuelle Prüfungsordnung nennt drei Semester (§ 2)."},
+{q:"Wie viele Prüfungsleistungen je Semester darf die aktuelle Prüfungsordnung des Masters International Management maximal vorsehen?",o:["8","10","12","15"],a:2,e:"§ 4 Abs. 3 begrenzt die maximale Anzahl auf zwölf Prüfungsleistungen je Semester."},
+{q:"Welche Änderung wurde 2025 für den Master Management mittelständischer Unternehmen beim Wahlpflichtmodul W555 vorgenommen?",o:["Das Modul wurde ersatzlos gestrichen","Es wurde in „Agile Steuerung durch Impro-Methoden“ umbenannt","Es wurde zum Pflichtmodul","Es wurde in „International Business Law“ umbenannt"],a:1,e:"Die Änderungssatzung vom 24.06.2025 ersetzt den Titel „Steuerungsprozesse und Führungsinstrumente“ durch „Agile Steuerung durch Impro-Methoden“."},
+{q:"Welche Ergänzungssatzung ist beim Bachelorstudiengang Wirtschaftsingenieurwesen auf der Fakultätsseite zusätzlich zur Prüfungs- und Studienordnung aufgeführt?",o:["Doppelabschlussprogramm mit Valladolid","Doppelabschlussprogramm mit Skoda University (Tschechien)","Doppelabschlussprogramm mit Frankreich","Doppelabschlussprogramm mit Russland"],a:1,e:"Die Seite führt eine Ergänzungssatzung zum Doppelabschlussprogramm mit der Skoda University (Tschechien) auf."},
+{q:"Welche Ergänzungssatzung ist beim Bachelorstudiengang International Business aufgeführt?",o:["Doppelabschlussprogramm mit Valladolid (Spanien)","Doppelabschlussprogramm mit Skoda University","Doppelabschlussprogramm mit Frankreich","Keine Ergänzungssatzung"],a:0,e:"Die Fakultätsseite führt für International Business eine Ergänzungssatzung zum Doppelabschlussprogramm mit Valladolid (Spanien) auf."},
+{q:"Für welchen Studiengang ist auf der Fakultätsseite eine Studien- und Prüfungsordnungsänderung vom 24.06.2025 mit Gültigkeit ab WS 2025/26 ausgewiesen?",o:["Bachelor Betriebswirtschaft","Master German Business Culture and International Management","Master International Business","Master Human Resources Management"],a:1,e:"Die Änderungssatzung für German Business Culture and International Management ist ab WS 2025/26 ausgewiesen."},
+{q:"Welche Regelstudienzeit nennt die Prüfungsordnung des Studiengangs International Management (4Sem) aus dem WS 2022/23?",o:["2 Semester","3 Semester","4 Semester","5 Semester"],a:2,e:"Die Bezeichnung „International Management (4Sem)“ verweist auf die viersemestrige Studiengangsvariante; maßgeblich bleibt die für den jeweiligen Jahrgang geltende Ordnung."},
+{q:"Welche Aussage zur Prüfungsorganisation findet sich in den Bachelor-Prüfungsordnungen der Fakultät?",o:["Alle Prüfungen finden während der Vorlesungszeit statt","Schriftliche und mündliche Prüfungen liegen grundsätzlich in Prüfungsabschnitten nach der Vorlesungszeit","Alternative Prüfungsleistungen sind stets außerhalb der Vorlesungszeit","Prüfungstermine werden ausschließlich von Studierenden festgelegt"],a:1,e:"Die Ordnungen sehen mündliche und schriftliche Prüfungsleistungen grundsätzlich in Prüfungsabschnitten im Anschluss an die Vorlesungszeit vor; alternative Prüfungsleistungen regelmäßig während der Vorlesungszeit."},
+{q:"Welche Studiengänge sind auf der Fakultätsseite als Masterstudiengänge mit einer aktuellen Fassung bzw. Änderung ab 2025/26 aufgeführt?",o:["Nur International Management","German Business Culture and International Management, International Management, Management mittelständischer Unternehmen und Wirtschaftsingenieurwesen","Ausschließlich Human Resources Management und International Business","Alle Bachelorstudiengänge"],a:1,e:"Die aktuellen Einträge der Mastertabelle führen diese vier Studiengänge mit neueren Fassungen bzw. Änderungssatzungen auf."},
+{q:"Was ist bei der Auswahl der maßgeblichen Studien- und Prüfungsordnung besonders zu beachten?",o:["Es gilt immer die neueste Ordnung unabhängig vom Studienbeginn","Es gilt stets die Ordnung eines beliebigen Kommilitonen","Entscheidend können Studiengang und Immatrikulationsjahrgang bzw. Übergangsregelungen sein","Nur die Modulhandbücher sind maßgeblich"],a:2,e:"Auf der Fakultätsseite sind mehrere Fassungen und Änderungssatzungen nach Gültigkeitsbeginn aufgeführt. Für die konkrete Person sind daher Studiengang, Jahrgang und Übergangsregelungen entscheidend."}
+];
+let index=0, answers=Array(questions.length).fill(null), done=false;
+const quiz=document.getElementById('quiz'), bar=document.getElementById('bar'), back=document.getElementById('back'), next=document.getElementById('next');
+function render(){
+ const q=questions[index]; bar.style.width=((index+1)/questions.length*100)+'%';
+ quiz.innerHTML=`<div class="muted">Frage ${index+1} von ${questions.length}</div><div class="qtitle">${q.q}</div>`+
+ q.o.map((v,i)=>`<label class="option"><input type="radio" name="answer" value="${i}" ${answers[index]===i?'checked':''}><span>${String.fromCharCode(65+i)}. ${v}</span></label>`).join('');
+ back.disabled=index===0; next.textContent=index===questions.length-1?'Test auswerten':'Weiter';
+}
+back.onclick=()=>{if(index>0){index--;render()}};
+next.onclick=()=>{
+ const chosen=document.querySelector('input[name="answer"]:checked');
+ if(chosen)answers[index]=Number(chosen.value);
+ if(answers[index]===null){alert('Bitte wähle eine Antwort aus.');return}
+ if(index<questions.length-1){index++;render()}else showResult();
+};
+function showResult(){
+ done=true; const score=answers.reduce((n,a,i)=>n+(a===questions[i].a?1:0),0), passed=score>=8;
+ bar.style.width='100%';
+ quiz.innerHTML=`<div class="result"><div class="pill">Testergebnis</div><h2 class="${passed?'pass':'fail'}">${passed?'Bestanden!':'Noch nicht bestanden'}</h2><div class="score">${score} / 15</div><p>${passed?'Glückwunsch! Du hast mindestens 8 Fragen richtig beantwortet.':'Du brauchst mindestens 8 richtige Antworten. Schau dir die Erläuterungen an und versuche es erneut.'}</p>${passed?'<p class="pass">🎉 Das hast du dir verdient!</p>':''}<button type="button" id="again" class="secondary">Test erneut starten</button></div><div class="review"><h3>Auswertung</h3>${questions.map((q,i)=>`<article><b>${i+1}. ${q.q}</b><p class="${answers[i]===q.a?'correct':'wrong'}">${answers[i]===q.a?'Richtig':'Nicht richtig'} – Richtige Antwort: ${q.o[q.a]}</p><small>${q.e}</small></article>`).join('')}</div>`;
+ document.querySelector('.actions').style.display='none';
+ if(passed) fireworks();
+ document.getElementById('again').onclick=()=>{index=0;answers=Array(questions.length).fill(null);done=false;document.querySelector('.actions').style.display='flex';render();};
+}
+function fireworks(){
+ const c=document.getElementById('fireworks'),ctx=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+ let bits=[];for(let k=0;k<7;k++){let x=Math.random()*c.width,y=Math.random()*c.height*.55;for(let i=0;i<65;i++){let a=Math.PI*2*i/65,s=2+Math.random()*5;bits.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:70+Math.random()*35,h:Math.random()*360})}}
+ let frame=0;function tick(){ctx.clearRect(0,0,c.width,c.height);bits.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.045;p.vx*=.99;p.life--;ctx.fillStyle=`hsla(${p.h},95%,60%,${Math.max(0,p.life/90)})`;ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill()});if(++frame<110)requestAnimationFrame(tick);else ctx.clearRect(0,0,c.width,c.height)}tick();
+}
+render();
+</script>
+</body></html>
